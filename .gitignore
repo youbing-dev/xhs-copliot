@@ -1,0 +1,59 @@
+# ===== IDE =====
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+Thumbs.db
+
+# ===== Java =====
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+hs_err_pid*
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ===== Node.js / Vue =====
+node_modules/
+**/dist/
+.npm
+.yarn
+
+# ===== 环境和敏感信息 =====
+.env
+.env.local
+.env.*.local
+**/.env
+!**/.env.example
+
+# ===== Agent 数据 =====
+moxi-agent/data/chroma/*
+!moxi-agent/data/chroma/.gitkeep
+moxi-agent/data/traces/*
+!moxi-agent/data/traces/.gitkeep
+moxi-agent/data/seed_notes/*.local.json
+
+# ===== 构建产物 =====
+*.log
+logs/
+
+# ===== Canvas/临时文件 =====
+.canvas-meta.json

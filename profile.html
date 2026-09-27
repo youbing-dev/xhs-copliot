@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人中心 — 墨析 MoXi</title>
+<meta name="canvas:aspect-ratio" content="16:9">
+<style>
+  :root {
+    --seed-bg: #ffffff;
+    --seed-fg: #111111;
+    --seed-primary: #c2620d;
+    --seed-accent: #d97706;
+    --seed-surface: #faf9f7;
+    --seed-radius: 22px;
+
+    --bg: var(--seed-bg);
+    --bg-warm: #faf9f7;
+    --bg-subtle: #f5f3ef;
+    --surface: #ffffff;
+    --fg: var(--seed-fg);
+    --fg-secondary: #4a4a4a;
+    --muted: #8b8b8b;
+    --border: #e8e5e0;
+    --border-light: #f0ede8;
+    --accent: var(--seed-accent);
+    --accent-hover: #b45309;
+    --accent-light: #fef3c7;
+    --accent-surface: #fffbeb;
+    --success: #059669;
+    --success-light: #ecfdf5;
+    --danger: #dc2626;
+    --danger-light: #fef2f2;
+
+    --font-display: "Georgia", "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
+    --font-body: "PingFang SC", "Source Han Sans SC", "Noto Sans SC", -apple-system, "Helvetica Neue", sans-serif;
+
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 40px;
+    --space-2xl: 64px;
+    --space-3xl: 96px;
+
+    --radius-sm: 8px;
+    --radius-md: var(--seed-radius);
+    --radius-lg: 24px;
+    --radius-pill: 9999px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--font-body); font-weight: 400; line-height: 1.6; color: var(--fg); background: var(--bg-subtle); min-height: 100vh; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  /* Top Bar (same as other pages) */
+  .topbar { height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 var(--space-lg); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+  .topbar-logo { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; margin-right: var(--space-xl); }
+  .topbar-logo-icon { width: 28px; height: 28px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .topbar-nav { display: flex; align-items: center; gap: var(--space-lg); flex: 1; }
+  .topbar-nav-item { font-size: 14px; font-weight: 500; letter-spacing: 0.02em; color: var(--muted); padding: 6px 0; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .topbar-nav-item--active { color: var(--fg); border-bottom-color: var(--accent); }
+  .topbar-nav-item:hover { color: var(--fg); }
+  .topbar-right { display: flex; align-items: center; gap: var(--space-md); }
+  .topbar-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--accent-hover); }
+  .topbar-quota { font-size: 13px; color: var(--muted); padding: 4px 12px; background: var(--bg-warm); border-radius: var(--radius-pill); }
+  .topbar-quota strong { color: var(--fg); font-weight: 600; }
+
+  /* Main */
+  .main { margin-top: 56px; padding: var(--space-lg); max-width: 1200px; margin-left: auto; margin-right: auto; }
+
+  /* Profile Header */
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    padding: var(--space-xl);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-lg);
+  }
+  .profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--accent-surface);
+    border: 3px solid var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--accent-hover);
+    flex-shrink: 0;
+  }
+  .profile-info { flex: 1; }
+  .profile-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .profile-plan-badge {
+    padding: 3px 10px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
+  }
+  .profile-meta {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .profile-actions { display: flex; gap: var(--space-sm); }
+  .profile-btn {
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .profile-btn--primary { background: var(--accent); color: #fff; }
+  .profile-btn--primary:hover { background: var(--accent-hover); }
+  .profile-btn--outline { border: 1.5px solid var(--border); color: var(--fg-secondary); }
+  .profile-btn--outline:hover { border-color: var(--fg); }
+
+  /* Two column layout */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: var(--space-lg);
+  }
+
+  /* Panel */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-action {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s;
+  }
+  .panel-action:hover { color: var(--accent); }
+
+  /* Usage Stats */
+  .usage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border-light);
+  }
+  .usage-item {
+    padding: 20px var(--space-lg);
+    background: var(--surface);
+    text-align: center;
+  }
+  .usage-value {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+  }
+  .usage-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Progress bar */
+  .usage-bar-section {
+    padding: var(--space-md) var(--space-lg);
+    border-top: 1px solid var(--border-light);
+  }
+  .usage-bar-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .usage-bar-label {
+    font-size: 13px;
+    color: var(--fg-secondary);
+  }
+  .usage-bar-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  .usage-bar {
+    height: 8px;
+    background: var(--bg-subtle);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .usage-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .usage-bar-fill--warn { background: var(--danger); }
+
+  /* History List */
+  .history-list { list-style: none; }
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: 14px var(--space-lg);
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.1s;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item:hover { background: var(--bg-warm); }
+  .history-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .history-icon--note { background: var(--accent-surface); color: var(--accent); }
+  .history-icon--draft { background: var(--bg-subtle); color: var(--muted); }
+  .history-info { flex: 1; min-width: 0; }
+  .history-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-meta {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: 2px;
+  }
+  .history-status {
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .history-status--published { background: var(--success-light); color: var(--success); }
+  .history-status--draft { background: var(--bg-subtle); color: var(--muted); }
+  .history-action {
+    font-size: 12px;
+    color: var(--muted);
+    transition: color 0.15s;
+  }
+  .history-action:hover { color: var(--accent); }
+
+  /* Sidebar */
+  .sidebar-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  /* Membership card */
+  .member-card {
+    padding: var(--space-lg);
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%);
+    border-radius: var(--radius-md);
+    color: #78350f;
+    position: relative;
+    overflow: hidden;
+  }
+  .member-card::after {
+    content: "";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 48px;
+    height: 48px;
+    border: 2px solid rgba(120,53,15,0.12);
+    border-radius: 8px;
+    transform: rotate(15deg);
+  }
+  .member-card::before {
+    content: "";
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    width: 28px;
+    height: 28px;
+    border: 2px solid rgba(120,53,15,0.08);
+    border-radius: 6px;
+    transform: rotate(30deg);
+  }
+  .member-card-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+  .member-card-plan {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+  }
+  .member-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+  }
+  .member-card-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .member-card-renew {
+    margin-top: var(--space-md);
+    padding: 8px 20px;
+    background: #78350f;
+    color: #fef3c7;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.15s;
+  }
+  .member-card-renew:hover { opacity: 0.9; }
+
+  /* Settings */
+  .settings-list { list-style: none; }
+  .settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px var(--space-lg);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .settings-item:last-child { border-bottom: none; }
+  .settings-item-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .settings-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--bg-warm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+  }
+  .settings-label {
+    font-size: 14px;
+    color: var(--fg);
+  }
+  .settings-desc {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  /* Toggle switch */
+  .toggle {
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    background: var(--border);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle--on { background: var(--accent); }
+  .toggle-dot {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    transition: left 0.2s;
+  }
+  .toggle--on .toggle-dot { left: 20px; }
+
+  /* Danger zone */
+  .danger-zone {
+    padding: var(--space-md) var(--space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .danger-zone-text {
+    font-size: 13px;
+    color: var(--danger);
+  }
+  .danger-zone-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .danger-zone-btn:hover { background: var(--danger); color: #fff; }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .content-grid { grid-template-columns: 1fr; }
+    .profile-header { flex-direction: column; text-align: center; }
+    .profile-actions { justify-content: center; }
+  }
+  @media (max-width: 768px) {
+    .topbar-nav { display: none; }
+    .usage-grid { grid-template-columns: repeat(3, 1fr); }
+    .usage-value { font-size: 22px; }
+    .usage-label { font-size: 11px; }
+    .profile-header { padding: var(--space-lg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<header class="topbar">
+  <a href="index.html" class="topbar-logo">
+    <span class="topbar-logo-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    </span>
+    墨析
+  </a>
+  <nav class="topbar-nav">
+    <a href="workbench.html" class="topbar-nav-item">创作工作台</a>
+    <a href="dashboard.html" class="topbar-nav-item">数据看板</a>
+    <a href="profile.html" class="topbar-nav-item topbar-nav-item--active">个人中心</a>
+  </nav>
+  <div class="topbar-right">
+    <span class="topbar-quota">今日剩余 <strong>2</strong> / 3 篇</span>
+    <span class="topbar-avatar">李</span>
+  </div>
+</header>
+
+<!-- Main -->
+<div class="main">
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="profile-avatar">李</div>
+    <div class="profile-info">
+      <div class="profile-name">
+        李明哲
+        <span class="profile-plan-badge">基础版</span>
+      </div>
+      <div class="profile-meta">limingzhe@example.com · 注册于 2026年5月12日 · 自我提升博主</div>
+    </div>
+    <div class="profile-actions">
+      <button class="profile-btn profile-btn--outline">编辑资料</button>
+      <button class="profile-btn profile-btn--primary">升级专业版</button>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <!-- Left Column -->
+    <div>
+      <!-- Usage Stats -->
+      <div class="panel" style="margin-bottom:var(--space-lg);">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            使用统计
+            <span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:4px;">本月</span>
+          </div>
+        </div>
+        <div class="usage-grid">
+          <div class="usage-item">
+            <div class="usage-value">47</div>
+            <div class="usage-label">笔记已生成</div>
+          </div>
+          <div class="usage-item">
+            <div class="usage-value">32,840</div>
+            <div class="usage-label">累计字数</div>
+          </div>
+          <div class="usage-item">
+            <div class="usage-value">14</div>
+            <div class="usage-label">封面图生成</div>
+          </div>
+        </div>
+        <div class="usage-bar-section">
+          <div class="usage-bar-header">
+            <span class="usage-bar-label">本月生成额度</span>
+            <span class="usage-bar-count">已使用 47 篇 · <span style="color:var(--success);font-weight:600;">∞ 不限量</span></span>
+          </div>
+        </div>
+        <div class="usage-bar-section">
+          <div class="usage-bar-header">
+            <span class="usage-bar-label">封面图额度</span>
+            <span class="usage-bar-count">14 / 45 张</span>
+          </div>
+          <div class="usage-bar">
+            <div class="usage-bar-fill" style="width:31%"></div>
+          </div>
+        </div>
+        <div class="usage-bar-section">
+          <div class="usage-bar-header">
+            <span class="usage-bar-label">人味化改写次数</span>
+            <span class="usage-bar-count">已使用 28 次 · <span style="color:var(--success);font-weight:600;">∞ 不限量</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generation History -->
+      <div class="panel" id="history">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            生成历史
+          </div>
+          <button class="panel-action">
+            查看全部
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+        <ul class="history-list">
+          <li class="history-item">
+            <div class="history-icon history-icon--note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="history-info">
+              <div class="history-title">工作5年才懂的效率真相：别再瞎忙了，试试这4个方法</div>
+              <div class="history-meta">
+                <span>今天 14:32</span>
+                <span>·</span>
+                <span>687 字</span>
+                <span>·</span>
+                <span>4 张封面</span>
+              </div>
+            </div>
+            <span class="history-status history-status--published">已发布</span>
+            <button class="history-action">查看</button>
+          </li>
+          <li class="history-item">
+            <div class="history-icon history-icon--note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="history-info">
+              <div class="history-title">90%的人都在假装努力 | 高效工作者的3个底层习惯</div>
+              <div class="history-meta">
+                <span>昨天 20:15</span>
+                <span>·</span>
+                <span>812 字</span>
+                <span>·</span>
+                <span>3 张封面</span>
+              </div>
+            </div>
+            <span class="history-status history-status--published">已发布</span>
+            <button class="history-action">查看</button>
+          </li>
+          <li class="history-item">
+            <div class="history-icon history-icon--draft">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="history-info">
+              <div class="history-title">告别低效加班：一个被验证有效的时间管理框架</div>
+              <div class="history-meta">
+                <span>7月20日 11:48</span>
+                <span>·</span>
+                <span>543 字</span>
+                <span>·</span>
+                <span>2 张封面</span>
+              </div>
+            </div>
+            <span class="history-status history-status--draft">草稿</span>
+            <button class="history-action">继续编辑</button>
+          </li>
+          <li class="history-item">
+            <div class="history-icon history-icon--note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="history-info">
+              <div class="history-title">读书笔记怎么发？这个方法让我月涨3000粉</div>
+              <div class="history-meta">
+                <span>7月19日 16:20</span>
+                <span>·</span>
+                <span>726 字</span>
+                <span>·</span>
+                <span>3 张封面</span>
+              </div>
+            </div>
+            <span class="history-status history-status--published">已发布</span>
+            <button class="history-action">查看</button>
+          </li>
+          <li class="history-item">
+            <div class="history-icon history-icon--note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="history-info">
+              <div class="history-title">副业从0到月入5000：我踩过的5个坑和3个建议</div>
+              <div class="history-meta">
+                <span>7月18日 09:05</span>
+                <span>·</span>
+                <span>935 字</span>
+                <span>·</span>
+                <span>3 张封面</span>
+              </div>
+            </div>
+            <span class="history-status history-status--published">已发布</span>
+            <button class="history-action">查看</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="sidebar-stack">
+      <!-- Membership Card -->
+      <div class="member-card">
+        <div class="member-card-label">当前方案</div>
+        <div class="member-card-plan">基础版 ¥29/月</div>
+        <div class="member-card-details">
+          <div class="member-card-detail">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            每天不限量生成笔记
+          </div>
+          <div class="member-card-detail">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            人味化改写 · 高级敏感词检测
+          </div>
+          <div class="member-card-detail">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            下次续费：2026年8月12日
+          </div>
+        </div>
+        <button class="member-card-renew">
+          查看年付方案（省 20%）
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <!-- Settings -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            账号设置
+          </div>
+        </div>
+        <ul class="settings-list">
+          <li class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              </div>
+              <div>
+                <div class="settings-label">爆款提醒</div>
+                <div class="settings-desc">关注的标签有新爆款时通知</div>
+              </div>
+            </div>
+            <button class="toggle toggle--on" role="switch" aria-checked="true" aria-label="爆款提醒" type="button" onclick="this.classList.toggle('toggle--on');this.setAttribute('aria-checked',this.classList.contains('toggle--on'))">
+              <span class="toggle-dot"></span>
+            </button>
+          </li>
+          <li class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              </div>
+              <div>
+                <div class="settings-label">周报邮件</div>
+                <div class="settings-desc">每周发送使用数据和趋势分析</div>
+              </div>
+            </div>
+            <button class="toggle toggle--on" role="switch" aria-checked="true" aria-label="周报邮件" type="button" onclick="this.classList.toggle('toggle--on');this.setAttribute('aria-checked',this.classList.contains('toggle--on'))">
+              <span class="toggle-dot"></span>
+            </button>
+          </li>
+          <li class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div>
+                <div class="settings-label">修改密码</div>
+                <div class="settings-desc">上次修改：2026年6月1日</div>
+              </div>
+            </div>
+            <button class="panel-action">修改</button>
+          </li>
+          <li class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              </div>
+              <div>
+                <div class="settings-label">绑定微信</div>
+                <div class="settings-desc">方便手机端查看数据</div>
+              </div>
+            </div>
+            <button class="panel-action">绑定</button>
+          </li>
+        </ul>
+        <div class="danger-zone">
+          <span class="danger-zone-text">注销账号将永久删除所有数据</span>
+          <button class="danger-zone-btn">注销账号</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

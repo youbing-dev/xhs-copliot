@@ -1,0 +1,63 @@
+services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root123}
+      - MYSQL_DATABASE=moxi
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --innodb-buffer-pool-size=512M --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+
+  moxi-agent:
+    build:
+      context: ../moxi-agent
+      dockerfile: Dockerfile
+    container_name: moxi-agent
+    ports:
+      - "8001:8001"
+    environment:
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-sk-xxx}
+      - LLM_MODEL=${LLM_MODEL:-qwen-plus}
+      - LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+      - EMBEDDING_MODEL=text-embedding-v3
+      - REDIS_URL=redis://redis:6379/1
+      - CHROMA_PERSIST_DIR=/app/data/chroma
+      - JAVA_SERVICE_URL=http://host.docker.internal:8080
+      - INTERNAL_SECRET=${INTERNAL_SECRET:-moxi-internal-2024}
+      - TRACE_ENABLED=true
+    volumes:
+      - agent-chroma-data:/app/data/chroma
+      - agent-traces:/app/data/traces
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:
+  redis_data:
+  agent-chroma-data:
+  agent-traces:
